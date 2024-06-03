@@ -216,55 +216,6 @@ namespace DrawingLetters
             StringBuilder sb = new StringBuilder();
             int maxDistance = GetHighestDistance();
 
-            /*
-            foreach (var kvp in allNeighbors)
-            {
-                DrawPoint keyPoint = kvp.Key;
-
-                DrawSinglePoint(graphic, keyPoint, dotRadius, keyPoint.Distance);
-                sb.Append(keyPoint.Distance + "\n");
-            }
-            
-            foreach (var kvp in allNeighbors)
-            {
-                DrawPoint point = kvp.Key;
-
-                if (point.Distance == 0)
-                {
-                    DrawCenterPoint(graphic, point, dotRadius, point.Distance);
-                }
-            }
-            
-            foreach (var kvp in allNeighbors)
-            {
-                DrawPoint keyPoint = kvp.Key;
-
-                DrawNumber(graphic, keyPoint, dotRadius, keyPoint.Distance);
-            }
-
-           Stack<DrawPoint> middleLine = new Stack<DrawPoint>();
-
-            do
-            {
-                foreach(var drawPoint in allNeighbors)
-                {
-                    DrawPoint point = drawPoint.Key;
-                    List<DrawPoint> points = drawPoint.Value;
-
-                    if (maxDistance == point.Distance)
-                    {
-                        CheckNeighbors(point, points, middleLine, maxDistance);
-                    }
-                }
-            } while (maxDistance-- > 2);
-
-            while (middleLine.Count > 0)
-            {
-                DrawPoint point = middleLine.Pop();
-                DrawCenterPoint(graphic, point, dotRadius);
-            }
-            */
-
             foreach (var kvp in allNeighbors)
             {
                 DrawPoint keyPoint = kvp.Key;
@@ -274,29 +225,6 @@ namespace DrawingLetters
 
             pointPosition.Text = sb.ToString();
             pointPosition.Text += maxDistance + "\n";
-        }
-
-        private void CheckNeighbors(DrawPoint point, List<DrawPoint> neighbors, Stack<DrawPoint> middleLine, int maxDistance)
-        {
-            int nextHighesDistance = maxDistance - 1;
-            List<DrawPoint> getRight = new List<DrawPoint>();
-
-            foreach (DrawPoint neighbor in neighbors)
-            {
-                if (neighbor.Distance == nextHighesDistance)
-                {
-                    getRight.Add(neighbor);
-                }
-            }
-
-            if (getRight.Count <= 2)
-            {
-                middleLine.Push(point);
-                foreach (DrawPoint actualPoint in neighbors)
-                {
-                    middleLine.Push(actualPoint);
-                }
-            }
         }
 
         private bool ContainsDistanceMinusOne()
