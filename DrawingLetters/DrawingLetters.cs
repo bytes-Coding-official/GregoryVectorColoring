@@ -1,5 +1,6 @@
 using System.Drawing.Drawing2D;
 using System.Globalization;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -100,7 +101,6 @@ namespace DrawingLetters
 
         private void ScaleDrawingCoordinates()
         {
-            //allNeighbors.Clear();
             //Berechnung des Skalierungsfaktors basierend auf dem Canvas-Größe
             scaleFactor = Math.Min(canvas.Width / (maxX - minX), canvas.Height / (maxY - minY));
 
@@ -220,12 +220,47 @@ namespace DrawingLetters
             {
                 DrawPoint keyPoint = kvp.Key;
 
-                //DrawNumber(graphic, keyPoint, dotRadius, keyPoint.Distance);
-                DrawSinglePoint(graphic, keyPoint, dotRadius, keyPoint.Distance);
+                DrawNumber(graphic, keyPoint, dotRadius, keyPoint.Distance);
+                //DrawSinglePoint(graphic, keyPoint, dotRadius, keyPoint.Distance);
+            }
+
+            int counterDistanceUp = 0;
+            Stack<DrawPoint> centerLine = new Stack<DrawPoint>();
+
+            while (counterDistanceUp <= maxDistance)
+            {
+                foreach (var kvp in allNeighbors)
+                {
+                    DrawPoint actualPoint = kvp.Key;
+                    List<DrawPoint> neighbors = kvp.Value;
+
+                    if (actualPoint.Distance == counterDistanceUp && CheckIfHigherDistance(actualPoint, neighbors))
+                    {
+                        centerLine.Push(actualPoint);
+                    }
+                }
+                counterDistanceUp++;
+            }
+
+            foreach (DrawPoint point in centerLine)
+            {
+                DrawCenterPoint(graphic, point, dotRadius);
             }
 
             pointPosition.Text = sb.ToString();
             pointPosition.Text += maxDistance + "\n";
+        }
+
+        private bool CheckIfHigherDistance(DrawPoint point, List<DrawPoint> allNeighbors)
+        {
+            foreach (DrawPoint neighborPoint in allNeighbors)
+            {
+                if (neighborPoint.Distance > point.Distance)
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         private bool ContainsDistanceMinusOne()
@@ -298,11 +333,24 @@ namespace DrawingLetters
 
         private void DrawSinglePoint(Graphics g, DrawPoint point, float radius, int distance)
         {
+
             int maxDistance = GetHighestDistance();
+            /*SolidBrush drawColor2 = new SolidBrush(Color.Yellow);
+            if (distance == maxDistance)
+            {
+                g.FillEllipse(drawColor2, point.X, point.Y, radius * 2, radius * 2);
+            }
+            else
+            {
+                double ratio = (double)distance / maxDistance;
+                int colorIntensity = (int)(ratio * 255.0);
+                SolidBrush drawColor = new SolidBrush(Color.FromArgb(255 - colorIntensity, 255 - colorIntensity, 255 - colorIntensity));
+                g.FillEllipse(drawColor, point.X, point.Y, radius * 2, radius * 2);
+            }*/
+
             double ratio = (double)distance / maxDistance;
             int colorIntensity = (int)(ratio * 255.0);
             SolidBrush drawColor = new SolidBrush(Color.FromArgb(255 - colorIntensity, 255 - colorIntensity, 255 - colorIntensity));
-
             g.FillEllipse(drawColor, point.X, point.Y, radius * 2, radius * 2);
         }
 
