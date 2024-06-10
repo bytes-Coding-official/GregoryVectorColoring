@@ -220,7 +220,8 @@ namespace DrawingLetters
             {
                 DrawPoint keyPoint = kvp.Key;
 
-                DrawNumber(graphic, keyPoint, dotRadius, keyPoint.Distance);
+                //DrawNumber(graphic, keyPoint, dotRadius, keyPoint.Distance);
+                DrawSinglePoint(graphic, keyPoint, dotRadius, keyPoint.Distance);
             }
 
             pointPosition.Text = sb.ToString();
