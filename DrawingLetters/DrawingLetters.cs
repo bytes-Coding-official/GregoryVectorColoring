@@ -114,7 +114,7 @@ namespace DrawingLetters
 
         private void LetterDrawingPaint(object sender, PaintEventArgs e)
         {
-            if (scaledCoords == null || scaledCoords.Length == 0)
+            if (originalCoords == null || originalCoords.Length == 0)
             {
                 return;
             }
@@ -122,7 +122,7 @@ namespace DrawingLetters
             Pen blackPen = new Pen(Color.Black, 5);
             PointF? startPoint = null;
 
-            foreach (DrawingCoordinate coordinate in scaledCoords)
+            foreach (DrawingCoordinate coordinate in originalCoords)
             {
                 double mirroredY = mirroringYCoordinate(coordinate.Y);
                 PointF currentPoint = new PointF((float)coordinate.X, (float)mirroredY);
@@ -153,11 +153,11 @@ namespace DrawingLetters
 
             drawnPoints = new List<DrawPoint>();
 
-            for (float y = 0; y < canvas.Height; y += height)
+            for (float y = 0; y < maxY; y += height)
             {
                 float offsetX = y / height % 2 * (distance / 2f);
 
-                for (int x = 0; x < canvas.Width; x += distance)
+                for (int x = 0; x < maxX; x += distance)
                 {
                     PointF point = new PointF(x + offsetX, y);
                     bool isPointInShape = GregoryCasting(point);
@@ -223,9 +223,9 @@ namespace DrawingLetters
                 //DrawSinglePoint(graphic, keyPoint, dotRadius, keyPoint.Distance);
             }
 
-            int counterDistanceUp = (int)(maxDistance / 1.5f) - 1;
-            //int counterDistanceUp = 0;
+            int counterDistanceUp = 1;
             Stack<DrawPoint> centerLine = new Stack<DrawPoint>();
+
 
             while (counterDistanceUp <= maxDistance)
             {
@@ -402,7 +402,7 @@ namespace DrawingLetters
 
         private bool GregoryCasting(Point mousePosition)
         {
-            if (scaledCoords == null || scaledCoords.Length == 0)
+            if (originalCoords == null || originalCoords.Length == 0)
             {
                 return false;
             }
@@ -417,10 +417,10 @@ namespace DrawingLetters
             double yOver = Double.MaxValue;
             double yUnder = Double.MinValue;
 
-            for (int i = 0; i < scaledCoords.Length - 1; i++)
+            for (int i = 0; i < originalCoords.Length - 1; i++)
             {
-                DrawingCoordinate startPoint = scaledCoords[i];
-                DrawingCoordinate endPoint = scaledCoords[i + 1];
+                DrawingCoordinate startPoint = originalCoords[i];
+                DrawingCoordinate endPoint = originalCoords[i + 1];
 
                 dx = endPoint.X - startPoint.X;
 
@@ -446,7 +446,7 @@ namespace DrawingLetters
 
         private bool GregoryCasting(PointF drawPoint)
         {
-            if (scaledCoords == null || scaledCoords.Length == 0)
+            if (originalCoords == null || originalCoords.Length == 0)
             {
                 return false;
             }
@@ -459,10 +459,10 @@ namespace DrawingLetters
             double yOver = Double.MaxValue;
             double yUnder = Double.MinValue;
 
-            for (int i = 0; i < scaledCoords.Length - 1; i++)
+            for (int i = 0; i < originalCoords.Length - 1; i++)
             {
-                DrawingCoordinate startPoint = scaledCoords[i];
-                DrawingCoordinate endPoint = scaledCoords[i + 1];
+                DrawingCoordinate startPoint = originalCoords[i];
+                DrawingCoordinate endPoint = originalCoords[i + 1];
 
                 dx = endPoint.X - startPoint.X;
 
