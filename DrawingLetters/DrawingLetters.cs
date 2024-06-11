@@ -224,7 +224,7 @@ namespace DrawingLetters
                 //DrawSinglePoint(graphic, keyPoint, dotRadius, keyPoint.Distance);
             }
 
-            int counterDistanceUp = 0;
+            int counterDistanceUp = (int)(maxDistance / 1.5f) - 1;
             Stack<DrawPoint> centerLine = new Stack<DrawPoint>();
 
             while (counterDistanceUp <= maxDistance)
@@ -234,7 +234,7 @@ namespace DrawingLetters
                     DrawPoint actualPoint = kvp.Key;
                     List<DrawPoint> neighbors = kvp.Value;
 
-                    if (actualPoint.Distance == counterDistanceUp && CheckIfHigherDistance(actualPoint, neighbors))
+                    if (actualPoint.Distance == counterDistanceUp && CheckIfHigherDistanceExist(actualPoint, neighbors))
                     {
                         centerLine.Push(actualPoint);
                     }
@@ -251,7 +251,7 @@ namespace DrawingLetters
             pointPosition.Text += maxDistance + "\n";
         }
 
-        private bool CheckIfHigherDistance(DrawPoint point, List<DrawPoint> allNeighbors)
+        private bool CheckIfHigherDistanceExist(DrawPoint point, List<DrawPoint> allNeighbors)
         {
             foreach (DrawPoint neighborPoint in allNeighbors)
             {
