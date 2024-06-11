@@ -225,6 +225,7 @@ namespace DrawingLetters
             }
 
             int counterDistanceUp = (int)(maxDistance / 1.5f) - 1;
+            //int counterDistanceUp = 0;
             Stack<DrawPoint> centerLine = new Stack<DrawPoint>();
 
             while (counterDistanceUp <= maxDistance)
