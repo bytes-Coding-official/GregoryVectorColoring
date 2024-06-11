@@ -178,7 +178,7 @@ namespace DrawingLetters
             pointPosition.Clear();
             ChangeDistanceOfDrawPoint();
             DrawCenterLine(graphic);
-            drawnPoints.Clear();
+            //drawnPoints.Clear();
         }
 
         private void ChangeDistanceOfDrawPoint()
