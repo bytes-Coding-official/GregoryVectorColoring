@@ -335,18 +335,6 @@ namespace DrawingLetters
         {
 
             int maxDistance = GetHighestDistance();
-            /*SolidBrush drawColor2 = new SolidBrush(Color.Yellow);
-            if (distance == maxDistance)
-            {
-                g.FillEllipse(drawColor2, point.X, point.Y, radius * 2, radius * 2);
-            }
-            else
-            {
-                double ratio = (double)distance / maxDistance;
-                int colorIntensity = (int)(ratio * 255.0);
-                SolidBrush drawColor = new SolidBrush(Color.FromArgb(255 - colorIntensity, 255 - colorIntensity, 255 - colorIntensity));
-                g.FillEllipse(drawColor, point.X, point.Y, radius * 2, radius * 2);
-            }*/
 
             double ratio = (double)distance / maxDistance;
             int colorIntensity = (int)(ratio * 255.0);
