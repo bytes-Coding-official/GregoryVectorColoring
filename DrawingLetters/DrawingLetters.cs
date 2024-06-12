@@ -142,7 +142,7 @@ namespace DrawingLetters
 
         private void DrawPoints(Graphics g)
         {
-            if (distance < 11)
+            if (distance < 2)
             {
                 return;
             }
@@ -162,8 +162,6 @@ namespace DrawingLetters
 
                     if (isPointInShape)
                     {
-                        point.X -= dotRadius;
-                        
                         drawnPoints.Add(new DrawPoint(point.X, point.Y));
                     }
                 }
