@@ -331,22 +331,22 @@ namespace DrawingLetters
 
             SolidBrush drawColor = new SolidBrush(Color.Black);
             double scaleFactor = GetScaleFactor();
-            point.Y = point.Y * scaleFactor;
-            point.Y = (float)mirroringYCoordinate(point.Y);
+            point.Y = ChangeYPointCoordinate(point.Y);
+            point.X *= scaleFactor;
 
-            g.FillEllipse(drawColor,(float) (point.X * scaleFactor), (float)point.Y, radius * 2, radius * 2);
+            g.FillEllipse(drawColor,(float) point.X, (float)point.Y, radius * 2, radius * 2);
         }
 
         private void DrawNumber(Graphics g, DrawPoint point, float radius, int distance)
         {
-            SolidBrush drawColor = new SolidBrush(Color.Yellow);
+            SolidBrush drawColor = new SolidBrush(Color.Red);
 
             Font font = new Font("Calibri", 8);
             double scaleFactor = GetScaleFactor();
-            point.Y = point.Y * scaleFactor;
-            point.Y = (float)mirroringYCoordinate(point.Y);
+            point.Y = ChangeYPointCoordinate(point.Y);
+            point.X *= scaleFactor;
 
-            g.DrawString(distance.ToString(), font, drawColor, (float)(point.X * scaleFactor), (float)point.Y);
+            g.DrawString(distance.ToString(), font, drawColor, (float)point.X, (float)point.Y);
         }
 
         private void DrawCenterPoint(Graphics g, DrawPoint point, float radius)
@@ -354,7 +354,7 @@ namespace DrawingLetters
             SolidBrush drawColor = new SolidBrush(Color.Yellow);
             double scaleFactor = GetScaleFactor();
 
-            g.FillEllipse(drawColor, (float)(point.X * scaleFactor), (float)point.Y, radius * 2, radius * 2);
+            g.FillEllipse(drawColor, (float)point.X, (float)point.Y, radius * 2, radius * 2);
         }
 
         private void CanvasResize(object sender, EventArgs e)
@@ -524,6 +524,15 @@ namespace DrawingLetters
         private double GetScaleFactor()
         {
             return Math.Min(canvas.Width / (maxX - minX), canvas.Height / (maxY - minY));
+        }
+
+        private double ChangeYPointCoordinate(double y)
+        {
+            double scaleFactor = GetScaleFactor();
+            y *= scaleFactor;
+            y = (float) mirroringYCoordinate((float) y);
+
+            return y;
         }
     }
 }
