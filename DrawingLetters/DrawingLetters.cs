@@ -1,3 +1,4 @@
+using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Globalization;
 using System.Text;
@@ -11,7 +12,6 @@ namespace DrawingLetters
         private DrawingCoordinate[] originalCoords;
         private DrawingCoordinate[] scaledCoords;
         private List<DrawPoint> drawnPoints;
-        private double scaleFactor;
         private int distance;
         private float dotRadius = 2.5f;
         private double maxX, maxY, minX, minY;
@@ -101,7 +101,7 @@ namespace DrawingLetters
         private void ScaleDrawingCoordinates()
         {
             //Berechnung des Skalierungsfaktors basierend auf dem Canvas-Größe
-            scaleFactor = Math.Min(canvas.Width / (maxX - minX), canvas.Height / (maxY - minY));
+            double scaleFactor = GetScaleFactor();
 
             for (int i = 0; i < originalCoords.Length; i++)
             {
@@ -114,7 +114,7 @@ namespace DrawingLetters
 
         private void LetterDrawingPaint(object sender, PaintEventArgs e)
         {
-            if (originalCoords == null || originalCoords.Length == 0)
+            if (scaledCoords == null || scaledCoords.Length == 0)
             {
                 return;
             }
@@ -122,7 +122,7 @@ namespace DrawingLetters
             Pen blackPen = new Pen(Color.Black, 5);
             PointF? startPoint = null;
 
-            foreach (DrawingCoordinate coordinate in originalCoords)
+            foreach (DrawingCoordinate coordinate in scaledCoords)
             {
                 double mirroredY = mirroringYCoordinate(coordinate.Y);
                 PointF currentPoint = new PointF((float)coordinate.X, (float)mirroredY);
@@ -140,14 +140,12 @@ namespace DrawingLetters
             DrawPoints(e.Graphics);
         }
 
-        private void DrawPoints(Graphics graphic)
+        private void DrawPoints(Graphics g)
         {
             if (distance < 11)
             {
                 return;
             }
-
-            graphic.SmoothingMode = SmoothingMode.AntiAlias;
 
             height = distance * (float)Math.Sqrt(3) / 2f;
 
@@ -165,7 +163,7 @@ namespace DrawingLetters
                     if (isPointInShape)
                     {
                         point.X -= dotRadius;
-                        point.Y = (float)mirroringYCoordinate(point.Y) - dotRadius;
+                        
                         drawnPoints.Add(new DrawPoint(point.X, point.Y));
                     }
                 }
@@ -176,8 +174,7 @@ namespace DrawingLetters
             FillNeighborMap();
             pointPosition.Clear();
             ChangeDistanceOfDrawPoint();
-            DrawCenterLine(graphic);
-            //drawnPoints.Clear();
+            DrawCenterLine(g);
         }
 
         private void ChangeDistanceOfDrawPoint()
@@ -219,13 +216,12 @@ namespace DrawingLetters
             {
                 DrawPoint keyPoint = kvp.Key;
 
-                DrawNumber(graphic, keyPoint, dotRadius, keyPoint.Distance);
-                //DrawSinglePoint(graphic, keyPoint, dotRadius, keyPoint.Distance);
+                //DrawNumber(graphic, keyPoint, dotRadius, keyPoint.Distance);
+                DrawSinglePoint(graphic, keyPoint, dotRadius, keyPoint.Distance);
             }
 
             int counterDistanceUp = 1;
             Stack<DrawPoint> centerLine = new Stack<DrawPoint>();
-
 
             while (counterDistanceUp <= maxDistance)
             {
@@ -336,26 +332,32 @@ namespace DrawingLetters
 
             int maxDistance = GetHighestDistance();
 
-            double ratio = (double)distance / maxDistance;
-            int colorIntensity = (int)(ratio * 255.0);
-            SolidBrush drawColor = new SolidBrush(Color.FromArgb(255 - colorIntensity, 255 - colorIntensity, 255 - colorIntensity));
-            g.FillEllipse(drawColor, point.X, point.Y, radius * 2, radius * 2);
+            SolidBrush drawColor = new SolidBrush(Color.Black);
+            double scaleFactor = GetScaleFactor();
+            point.Y = point.Y * scaleFactor;
+            point.Y = (float)mirroringYCoordinate(point.Y);
+
+            g.FillEllipse(drawColor,(float) (point.X * scaleFactor), (float)point.Y, radius * 2, radius * 2);
         }
 
         private void DrawNumber(Graphics g, DrawPoint point, float radius, int distance)
         {
-            SolidBrush drawColor = new SolidBrush(Color.Red);
+            SolidBrush drawColor = new SolidBrush(Color.Yellow);
 
             Font font = new Font("Calibri", 8);
+            double scaleFactor = GetScaleFactor();
+            point.Y = point.Y * scaleFactor;
+            point.Y = (float)mirroringYCoordinate(point.Y);
 
-            g.DrawString(distance.ToString(), font, drawColor, point.X, point.Y);
+            g.DrawString(distance.ToString(), font, drawColor, (float)(point.X * scaleFactor), (float)point.Y);
         }
 
         private void DrawCenterPoint(Graphics g, DrawPoint point, float radius)
         {
             SolidBrush drawColor = new SolidBrush(Color.Yellow);
+            double scaleFactor = GetScaleFactor();
 
-            g.FillEllipse(drawColor, point.X, point.Y, radius * 2, radius * 2);
+            g.FillEllipse(drawColor, (float)(point.X * scaleFactor), (float)point.Y, radius * 2, radius * 2);
         }
 
         private void CanvasResize(object sender, EventArgs e)
@@ -390,7 +392,7 @@ namespace DrawingLetters
 
         private bool GregoryCasting(Point mousePosition)
         {
-            if (originalCoords == null || originalCoords.Length == 0)
+            if (scaledCoords == null || scaledCoords.Length == 0)
             {
                 return false;
             }
@@ -405,10 +407,10 @@ namespace DrawingLetters
             double yOver = Double.MaxValue;
             double yUnder = Double.MinValue;
 
-            for (int i = 0; i < originalCoords.Length - 1; i++)
+            for (int i = 0; i < scaledCoords.Length - 1; i++)
             {
-                DrawingCoordinate startPoint = originalCoords[i];
-                DrawingCoordinate endPoint = originalCoords[i + 1];
+                DrawingCoordinate startPoint = scaledCoords[i];
+                DrawingCoordinate endPoint = scaledCoords[i + 1];
 
                 dx = endPoint.X - startPoint.X;
 
@@ -520,6 +522,11 @@ namespace DrawingLetters
 
             distance = int.Parse(distances);
             canvas.Invalidate();
+        }
+
+        private double GetScaleFactor()
+        {
+            return Math.Min(canvas.Width / (maxX - minX), canvas.Height / (maxY - minY));
         }
     }
 }
