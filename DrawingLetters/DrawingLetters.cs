@@ -209,7 +209,7 @@ namespace DrawingLetters
         {
             StringBuilder sb = new StringBuilder();
             int maxDistance = GetHighestDistance();
-            pointPosition.Text += maxDistance + "\n";
+            pointPosition.Text += maxDistance;
 
             foreach (var kvp in allNeighbors)
             {
