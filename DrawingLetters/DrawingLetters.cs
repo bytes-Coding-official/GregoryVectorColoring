@@ -209,6 +209,7 @@ namespace DrawingLetters
         {
             StringBuilder sb = new StringBuilder();
             int maxDistance = GetHighestDistance();
+            pointPosition.Text += maxDistance + "\n";
 
             foreach (var kvp in allNeighbors)
             {
@@ -241,8 +242,6 @@ namespace DrawingLetters
                 DrawCenterPoint(graphic, point, dotRadius);
             }
 
-            pointPosition.Text = sb.ToString();
-            pointPosition.Text += maxDistance + "\n";
         }
 
         private bool CheckIfHigherDistanceExist(DrawPoint point, List<DrawPoint> allNeighbors)
