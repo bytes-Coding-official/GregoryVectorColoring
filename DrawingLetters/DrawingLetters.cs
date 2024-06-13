@@ -61,6 +61,12 @@ namespace DrawingLetters
 
                 string line;
 
+                if (distance > 0)
+                {
+                    distance = 0;
+                    inputDistance.Text = "0";
+                }
+
                 while ((line = stream.ReadLine()) != null)
                 {
                     if (idx > originalCoords.Length - 1)
