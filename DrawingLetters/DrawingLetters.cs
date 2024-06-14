@@ -11,6 +11,7 @@ namespace DrawingLetters
         private DrawingCoordinate[] scaledCoords;
         private List<DrawPoint> drawnPoints;
         private int distance;
+        private int distanceLED;
         private float dotRadius = 2.5f;
         private double maxX, maxY, minX, minY;
         private float height;
@@ -146,10 +147,14 @@ namespace DrawingLetters
 
         private void DrawPoints(Graphics g)
         {
-            if (distance < 2)
+            if (distance < 10)
             {
                 return;
             }
+
+            distanceLED = distance;
+
+            distance /= 10;
 
             height = distance * (float)Math.Sqrt(3) / 2f;
 
@@ -177,6 +182,7 @@ namespace DrawingLetters
             pointPosition.Clear();
             ChangeDistanceOfDrawPoint();
             DrawCenterLine(g);
+            distance *= 10;
         }
 
         private void ChangeDistanceOfDrawPoint()
@@ -219,11 +225,11 @@ namespace DrawingLetters
             {
                 DrawPoint keyPoint = kvp.Key;
 
-                //DrawNumber(graphic, keyPoint, dotRadius, keyPoint.Distance);
-                DrawSinglePoint(graphic, keyPoint, dotRadius, keyPoint.Distance);
+                DrawNumber(graphic, keyPoint, dotRadius, keyPoint.Distance);
+                //DrawSinglePoint(graphic, keyPoint, dotRadius, keyPoint.Distance);
             }
 
-            int counterDistanceUp = 1;
+            int counterDistanceUp = 0;
             Stack<DrawPoint> centerLine = new Stack<DrawPoint>();
 
             while (counterDistanceUp <= maxDistance)
@@ -243,6 +249,7 @@ namespace DrawingLetters
 
             foreach (DrawPoint point in centerLine)
             {
+
                 DrawCenterPoint(graphic, point, dotRadius);
             }
 
@@ -353,9 +360,15 @@ namespace DrawingLetters
             g.DrawString(distance.ToString(), font, drawColor, (float)point.X, (float)point.Y);
         }
 
-        private void DrawCenterPoint(Graphics g, DrawPoint point, float radius)
+        private void DrawCenterPoint(Graphics g, DrawPoint point, float radius, bool isRed=false)
         {
             SolidBrush drawColor = new SolidBrush(Color.Yellow);
+
+            if(isRed)
+            {
+                drawColor = new SolidBrush(Color.Red);
+            }
+
             double scaleFactor = GetScaleFactor();
 
             g.FillEllipse(drawColor, (float)point.X, (float)point.Y, radius * 2, radius * 2);
