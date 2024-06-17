@@ -1,4 +1,8 @@
+using System.Collections.Generic;
+using System;
 using System.Globalization;
+using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -152,7 +156,7 @@ namespace DrawingLetters
                 return;
             }
 
-            distanceLED = distance;
+            distanceLED = distance / 2;
 
             distance /= 10;
 
@@ -225,12 +229,12 @@ namespace DrawingLetters
             {
                 DrawPoint keyPoint = kvp.Key;
 
-                DrawNumber(graphic, keyPoint, dotRadius, keyPoint.Distance);
-                //DrawSinglePoint(graphic, keyPoint, dotRadius, keyPoint.Distance);
+                //DrawNumber(graphic, keyPoint, dotRadius, keyPoint.Distance);
+                DrawSinglePoint(graphic, keyPoint, dotRadius);
             }
 
             int counterDistanceUp = 0;
-            Stack<DrawPoint> centerLine = new Stack<DrawPoint>();
+            Stack<DrawPoint> centerLinePoints = new Stack<DrawPoint>();
 
             while (counterDistanceUp <= maxDistance)
             {
@@ -239,23 +243,41 @@ namespace DrawingLetters
                     DrawPoint actualPoint = kvp.Key;
                     List<DrawPoint> neighbors = kvp.Value;
 
-                    if (actualPoint.Distance == counterDistanceUp && CheckIfHigherDistanceExist(actualPoint, neighbors))
+                    if (actualPoint.Distance == counterDistanceUp && CheckIfHigherDistanceNotExist(actualPoint, neighbors))
                     {
-                        centerLine.Push(actualPoint);
+                        centerLinePoints.Push(actualPoint);
                     }
                 }
                 counterDistanceUp++;
             }
 
-            foreach (DrawPoint point in centerLine)
+            foreach (DrawPoint point in centerLinePoints)
             {
-
                 DrawCenterPoint(graphic, point, dotRadius);
             }
 
+            DrawLEDPoints(centerLinePoints, graphic);
         }
 
-        private bool CheckIfHigherDistanceExist(DrawPoint point, List<DrawPoint> allNeighbors)
+        private void DrawLEDPoints(Stack<DrawPoint> dP, Graphics graphic)
+        {
+            int counter = 0;
+            int counterLED = 0;
+
+            foreach (DrawPoint point in dP)
+            {
+                if (counterLED % distanceLED == 0)
+                {
+                    DrawCenterPoint(graphic, point, dotRadius, true);
+                    //pointPosition.Text += counterLED + "\n";
+                }
+
+                counterLED++;
+            }
+            pointPosition.Text += maxX + "\n";
+        }
+
+        private bool CheckIfHigherDistanceNotExist(DrawPoint point, List<DrawPoint> allNeighbors)
         {
             foreach (DrawPoint neighborPoint in allNeighbors)
             {
@@ -283,7 +305,7 @@ namespace DrawingLetters
                 DrawPoint keyPoint = neighbor.Key;
                 List<DrawPoint> valuePoints = neighbor.Value;
 
-                if (keyPoint.Distance == -1 && valuePoints.Count() < 6)
+                if (valuePoints.Count() < 6)
                 {
                     keyPoint.Distance = 0;
                 }
@@ -335,17 +357,16 @@ namespace DrawingLetters
             }
         }
 
-        private void DrawSinglePoint(Graphics g, DrawPoint point, float radius, int distance)
+        private void DrawSinglePoint(Graphics g, DrawPoint point, float radius)
         {
-
             int maxDistance = GetHighestDistance();
-
             SolidBrush drawColor = new SolidBrush(Color.Black);
+
             double scaleFactor = GetScaleFactor();
             point.Y = ChangeYPointCoordinate(point.Y);
             point.X *= scaleFactor;
 
-            g.FillEllipse(drawColor,(float) point.X, (float)point.Y, radius * 2, radius * 2);
+            g.FillEllipse(drawColor, (float)point.X, (float)point.Y, radius * 2, radius * 2);
         }
 
         private void DrawNumber(Graphics g, DrawPoint point, float radius, int distance)
@@ -360,11 +381,11 @@ namespace DrawingLetters
             g.DrawString(distance.ToString(), font, drawColor, (float)point.X, (float)point.Y);
         }
 
-        private void DrawCenterPoint(Graphics g, DrawPoint point, float radius, bool isRed=false)
+        private void DrawCenterPoint(Graphics g, DrawPoint point, float radius, bool isRed = false)
         {
             SolidBrush drawColor = new SolidBrush(Color.Yellow);
 
-            if(isRed)
+            if (isRed)
             {
                 drawColor = new SolidBrush(Color.Red);
             }
@@ -547,7 +568,7 @@ namespace DrawingLetters
         {
             double scaleFactor = GetScaleFactor();
             y *= scaleFactor;
-            y = (float) mirroringYCoordinate((float) y);
+            y = (float)mirroringYCoordinate((float)y);
 
             return y;
         }
