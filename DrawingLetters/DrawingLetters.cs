@@ -274,7 +274,6 @@ namespace DrawingLetters
 
                 counterLED++;
             }
-            pointPosition.Text += maxX + "\n";
         }
 
         private bool CheckIfHigherDistanceNotExist(DrawPoint point, List<DrawPoint> allNeighbors)
