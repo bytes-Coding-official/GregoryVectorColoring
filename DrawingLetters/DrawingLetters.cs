@@ -1,8 +1,4 @@
-using System.Collections.Generic;
-using System;
 using System.Globalization;
-using System.IO;
-using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -156,7 +152,7 @@ namespace DrawingLetters
                 return;
             }
 
-            distanceLED = distance / 2;
+            distanceLED = distance;
 
             distance /= 10;
 
@@ -256,24 +252,46 @@ namespace DrawingLetters
                 DrawCenterPoint(graphic, point, dotRadius);
             }
 
-            DrawLEDPoints(centerLinePoints, graphic);
+            List<DrawPoint> centerPointList = centerLinePoints.ToList();
+
+            DrawLEDPoints(centerPointList, graphic);
         }
 
-        private void DrawLEDPoints(Stack<DrawPoint> dP, Graphics graphic)
+        private void DrawLEDPoints(List<DrawPoint> centerPointList, Graphics graphic)
         {
+            int halfDistance = distanceLED / 2;
             int counter = 0;
-            int counterLED = 0;
+            double dx;
+            double dy;
 
-            foreach (DrawPoint point in dP)
+            List<DrawPoint> newPoints = new List<DrawPoint>();
+
+            //DrawCenterPoint();
+
+            for (int i = 0; i < centerPointList.Count; i++)
             {
-                if (counterLED % distanceLED == 0)
+                for (int j = i + 1; j < centerPointList.Count; j++)
                 {
-                    DrawCenterPoint(graphic, point, dotRadius, true);
-                    //pointPosition.Text += counterLED + "\n";
+                    dx = centerPointList[j].X - centerPointList[i].X;
+                    dy = centerPointList[j].Y - centerPointList[i].Y;
+                    double pointDistance = Math.Sqrt(dx * dx + dy * dy);
+
+                    if (Math.Abs(halfDistance - pointDistance) <= distance + 1)
+                    {
+                        centerPointList.Remove(centerPointList[j]);
+                    }
                 }
 
-                counterLED++;
+                newPoints.Add(centerPointList[i]);
+
             }
+
+            foreach (DrawPoint p in newPoints)
+            {
+                DrawCenterPoint(graphic, p, dotRadius, true);
+            }
+
+
         }
 
         private bool CheckIfHigherDistanceNotExist(DrawPoint point, List<DrawPoint> allNeighbors)
@@ -522,7 +540,7 @@ namespace DrawingLetters
 
         private bool AreXCoordinatesInTargetPointXCoordinate(double startPointX, double endpointX, double targetPointX)
         {
-            return (startPointX < targetPointX && endpointX > targetPointX) || (startPointX > targetPointX && endpointX < targetPointX);
+            return (startPointX < targetPointX && endpointX > targetPointX) ^ (startPointX > targetPointX && endpointX < targetPointX);
         }
 
         private double mirroringYCoordinate(double y)
