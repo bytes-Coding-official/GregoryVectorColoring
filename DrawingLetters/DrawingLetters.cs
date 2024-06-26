@@ -252,8 +252,18 @@ namespace DrawingLetters
                 DrawCenterPoint(graphic, point, dotRadius);
             }
 
-            List<DrawPoint> centerPointList = centerLinePoints.ToList();
-
+            HashSet<DrawPoint> ledPoints = [];
+            foreach (var linePoint in from linePoint in centerLinePoints let nichtUeberlappend = new HashSet<DrawPoint>(ledPoints).All(donePoint => linePoint.X + distanceLED < donePoint.X - distanceLED || linePoint.X - distanceLED > donePoint.X + distanceLED || linePoint.Y + distanceLED < donePoint.Y - distanceLED || linePoint.Y - distanceLED > donePoint.Y + distanceLED) where nichtUeberlappend select linePoint)
+            {
+                ledPoints.Add(linePoint);
+                Console.WriteLine("Added: " + linePoint);
+            }
+            //& Färbe und zeichne die punkte ein
+            foreach (DrawPoint point in centerLinePoints)
+            {
+                DrawCenterPoint(graphic, point, dotRadius);
+            }
+            List<DrawPoint> centerPointList = ledPoints.ToList();
             DrawLEDPoints(centerPointList, graphic);
         }
 
@@ -283,7 +293,6 @@ namespace DrawingLetters
                 }
 
                 newPoints.Add(centerPointList[i]);
-
             }
 
             foreach (DrawPoint p in newPoints)
