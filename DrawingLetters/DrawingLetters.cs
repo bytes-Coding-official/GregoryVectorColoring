@@ -299,8 +299,6 @@ namespace DrawingLetters
             {
                 DrawCenterPoint(graphic, p, dotRadius, true);
             }
-
-
         }
 
         private bool CheckIfHigherDistanceNotExist(DrawPoint point, List<DrawPoint> allNeighbors)
