@@ -286,7 +286,7 @@ namespace DrawingLetters
                     dy = centerPointList[j].Y - centerPointList[i].Y;
                     double pointDistance = Math.Sqrt(dx * dx + dy * dy);
 
-                    if (Math.Abs(halfDistance - pointDistance) <= distance + 1)
+                    if (Math.Abs(halfDistance - pointDistance) <= distanceLED + 1)
                     {
                         centerPointList.Remove(centerPointList[j]);
                     }
