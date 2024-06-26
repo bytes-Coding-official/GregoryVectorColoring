@@ -196,7 +196,6 @@ namespace DrawingLetters {
 
             var counterDistanceUp = 0;
             Stack<DrawPoint> centerLinePoints = new();
-            HashSet<DrawPoint> ledPoints = [];
             while (counterDistanceUp <= maxDistance) {
                 foreach (var actualPoint in from kvp in allNeighbors let actualPoint = kvp.Key let neighbors = kvp.Value where actualPoint.Distance == counterDistanceUp && CheckIfHigherDistanceNotExist(actualPoint, neighbors) select actualPoint) {
                     centerLinePoints.Push(actualPoint);
@@ -204,38 +203,16 @@ namespace DrawingLetters {
 
                 counterDistanceUp++;
             }
-
-            foreach (var linePoint in centerLinePoints) {
-                var nichtUeberlappend = true;
-                foreach (var donePoint in new HashSet<DrawPoint>(ledPoints)) {
-                    // Check if the squares around linePoint and donePoint overlap
-                    if (
-                        linePoint.X + distanceLED < donePoint.X - distanceLED ||
-                        linePoint.X - distanceLED > donePoint.X + distanceLED ||
-                        linePoint.Y + distanceLED < donePoint.Y - distanceLED ||
-                        linePoint.Y - distanceLED > donePoint.Y + distanceLED
-                    ) {
-                        continue; // The squares do not overlap, continue to the next donePoint
-                    }
-
-                    nichtUeberlappend = false; // The squares overlap
-                    break; // No need to check further donePoints
-                }
-
-                if (nichtUeberlappend) {
-                    ledPoints.Add(linePoint);
-                    Console.WriteLine("Added: " + linePoint);
-                }
+            HashSet<DrawPoint> ledPoints = [];
+            foreach (var linePoint in from linePoint in centerLinePoints let nichtUeberlappend = new HashSet<DrawPoint>(ledPoints).All(donePoint => linePoint.X + distanceLED < donePoint.X - distanceLED || linePoint.X - distanceLED > donePoint.X + distanceLED || linePoint.Y + distanceLED < donePoint.Y - distanceLED || linePoint.Y - distanceLED > donePoint.Y + distanceLED) where nichtUeberlappend select linePoint) {
+                ledPoints.Add(linePoint);
+                Console.WriteLine("Added: " + linePoint);
             }
-
             //& Färbe und zeichne die punkte ein
             foreach (DrawPoint point in centerLinePoints) {
                 DrawCenterPoint(graphic, point, dotRadius);
             }
-
             List<DrawPoint> centerPointList = ledPoints.ToList();
-
-
             DrawLEDPoints(centerPointList, graphic);
         }
 
