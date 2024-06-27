@@ -392,8 +392,6 @@ namespace DrawingLetters
         {
             SolidBrush drawColor = new SolidBrush(isRed ? Color.Red : Color.Yellow);
 
-            double scaleFactor = GetScaleFactor();
-
             g.FillEllipse(drawColor, (float)point.X, (float)point.Y, 10, 10);
         }
 
