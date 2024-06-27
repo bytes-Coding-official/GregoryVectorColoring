@@ -154,9 +154,14 @@ namespace DrawingLetters
 
             distanceLED = distance;
 
+            if(distanceLED >= 100)
+            {
+                distanceLED /= 10;
+            }
+
             distance /= 10;
 
-            height = distance * (float)Math.Sqrt(3) / 2f;
+            height = distance * (float) Math.Sqrt(3) / 2f;
 
             drawnPoints = new List<DrawPoint>();
 
@@ -217,46 +222,40 @@ namespace DrawingLetters
 
         private void DrawCenterLine(Graphics graphic)
         {
-            StringBuilder sb = new StringBuilder();
             int maxDistance = GetHighestDistance();
             pointPosition.Text += maxDistance + "\n";
 
-            foreach (var kvp in allNeighbors)
+            foreach (var keyPoint in allNeighbors.Select(kvp => kvp.Key))
             {
-                DrawPoint keyPoint = kvp.Key;
-
                 //DrawNumber(graphic, keyPoint, dotRadius, keyPoint.Distance);
                 DrawSinglePoint(graphic, keyPoint, dotRadius);
             }
 
             int counterDistanceUp = 0;
-            Stack<DrawPoint> centerLinePoints = new Stack<DrawPoint>();
+            Stack<DrawPoint> centerLinePoints = new();
 
             while (counterDistanceUp <= maxDistance)
             {
-                foreach (var kvp in allNeighbors)
+                foreach (var actualPoint in from kvp in allNeighbors 
+                        let actualPoint = kvp.Key let neighbors = kvp.Value 
+                        where actualPoint.Distance == counterDistanceUp && 
+                        CheckIfHigherDistanceNotExist(actualPoint, neighbors) select actualPoint)
                 {
-                    DrawPoint actualPoint = kvp.Key;
-                    List<DrawPoint> neighbors = kvp.Value;
-
-                    if (actualPoint.Distance == counterDistanceUp && CheckIfHigherDistanceNotExist(actualPoint, neighbors))
-                    {
-                        centerLinePoints.Push(actualPoint);
-                    }
+                    centerLinePoints.Push(actualPoint);
                 }
                 counterDistanceUp++;
             }
 
-            foreach (DrawPoint point in centerLinePoints)
-            {
-                DrawCenterPoint(graphic, point, dotRadius);
-            }
-
             HashSet<DrawPoint> ledPoints = [];
-            foreach (var linePoint in from linePoint in centerLinePoints let nichtUeberlappend = new HashSet<DrawPoint>(ledPoints).All(donePoint => linePoint.X + distanceLED < donePoint.X - distanceLED || linePoint.X - distanceLED > donePoint.X + distanceLED || linePoint.Y + distanceLED < donePoint.Y - distanceLED || linePoint.Y - distanceLED > donePoint.Y + distanceLED) where nichtUeberlappend select linePoint)
+            foreach (var linePoint in from linePoint in centerLinePoints 
+                    let nichtUeberlappend = new HashSet<DrawPoint>(ledPoints).
+                    All(donePoint => linePoint.X + distanceLED < donePoint.X - distanceLED ||
+                    linePoint.X - distanceLED > donePoint.X + distanceLED || 
+                    linePoint.Y + distanceLED < donePoint.Y - distanceLED || 
+                    linePoint.Y - distanceLED > donePoint.Y + distanceLED) 
+                    where nichtUeberlappend select linePoint)
             {
                 ledPoints.Add(linePoint);
-                Console.WriteLine("Added: " + linePoint);
             }
             //& Färbe und zeichne die punkte ein
             foreach (DrawPoint point in centerLinePoints)
@@ -303,14 +302,7 @@ namespace DrawingLetters
 
         private bool CheckIfHigherDistanceNotExist(DrawPoint point, List<DrawPoint> allNeighbors)
         {
-            foreach (DrawPoint neighborPoint in allNeighbors)
-            {
-                if (neighborPoint.Distance > point.Distance)
-                {
-                    return false;
-                }
-            }
-            return true;
+            return allNeighbors.All(neighborPoint => neighborPoint.Distance <= point.Distance);
         }
 
         private bool ContainsDistanceMinusOne()
@@ -324,29 +316,21 @@ namespace DrawingLetters
 
         private void ChangeDistanceFromMinusOneToZero()
         {
-            foreach (var neighbor in allNeighbors)
+            foreach (var neighbor in allNeighbors.Select(kvp => kvp.Key))
             {
-                DrawPoint keyPoint = neighbor.Key;
-                List<DrawPoint> valuePoints = neighbor.Value;
-
-                if (valuePoints.Count() < 6)
+                if (allNeighbors[neighbor].Count() < 6)
                 {
-                    keyPoint.Distance = 0;
+                    neighbor.Distance = 0;
                 }
             }
         }
 
         private void GetDistancesAndChangeThem(DrawPoint keypoint, List<DrawPoint> neighbors, int countDistance)
         {
-            if (keypoint.Distance == countDistance)
+            if (keypoint.Distance != countDistance) return;
+            foreach (var actualNeighbor in neighbors.Where(actualNeighbor => actualNeighbor.Distance == -1))
             {
-                foreach (DrawPoint actualNeighbor in neighbors)
-                {
-                    if (actualNeighbor.Distance == -1)
-                    {
-                        actualNeighbor.Distance = countDistance + 1;
-                    }
-                }
+                actualNeighbor.Distance = countDistance + 1;
             }
         }
 
@@ -370,15 +354,14 @@ namespace DrawingLetters
 
         private void AddNeighborIfClose(DrawPoint firstPoint, DrawPoint secondPoint, float offsetX, float offsetY)
         {
-            if (Math.Abs(secondPoint.X - (firstPoint.X + offsetX)) < 1 && Math.Abs(secondPoint.Y - (firstPoint.Y + offsetY)) < 1)
+            if (!(Math.Abs(secondPoint.X - (firstPoint.X + offsetX)) < 1) || !(Math.Abs(secondPoint.Y - (firstPoint.Y + offsetY)) < 1)) return;
+            if (!allNeighbors.TryGetValue(firstPoint, out var neighbor))
             {
-                if (!allNeighbors.TryGetValue(firstPoint, out var neighbor))
-                {
-                    neighbor = new List<DrawPoint>();
-                    allNeighbors.Add(firstPoint, neighbor);
-                }
-                neighbor.Add(secondPoint);
+                neighbor = new List<DrawPoint>();
+                allNeighbors.Add(firstPoint, neighbor);
             }
+
+            neighbor.Add(secondPoint);
         }
 
         private void DrawSinglePoint(Graphics g, DrawPoint point, float radius)
@@ -407,12 +390,7 @@ namespace DrawingLetters
 
         private void DrawCenterPoint(Graphics g, DrawPoint point, float radius, bool isRed = false)
         {
-            SolidBrush drawColor = new SolidBrush(Color.Yellow);
-
-            if (isRed)
-            {
-                drawColor = new SolidBrush(Color.Red);
-            }
+            SolidBrush drawColor = new SolidBrush(isRed ? Color.Red : Color.Yellow);
 
             double scaleFactor = GetScaleFactor();
 
@@ -439,14 +417,7 @@ namespace DrawingLetters
         {
             bool isInForm = GregoryCasting(e.Location);
 
-            if (isInForm)
-            {
-                vectorChecking.BackColor = Color.ForestGreen;
-            }
-            else
-            {
-                vectorChecking.BackColor = Color.Red;
-            }
+            vectorChecking.BackColor = isInForm ? Color.ForestGreen : Color.Red;
         }
 
         private bool GregoryCasting(Point mousePosition)
@@ -473,23 +444,22 @@ namespace DrawingLetters
 
                 dx = endPoint.X - startPoint.X;
 
-                if (IsPointWithinXRangeAndNotMoving(mousePosition, startPoint, endPoint, dx))
-                {
-                    dy = endPoint.Y - startPoint.Y;
-                    ys = (mouseX - startPoint.X) / dx * dy + startPoint.Y;
+                if (!IsPointWithinXRangeAndNotMoving(mousePosition, startPoint, endPoint, dx)) continue;
+                dy = endPoint.Y - startPoint.Y;
+                ys = (mouseX - startPoint.X) / dx * dy + startPoint.Y;
 
-                    if (ys >= mouseY && ys < yOver)
-                    {
-                        yOver = ys;
-                        dxOver = dx;
-                    }
-                    else if (ys <= mouseY && ys > yUnder)
-                    {
-                        yUnder = ys;
-                        dxUnder = dx;
-                    }
+                if (ys >= mouseY && ys < yOver)
+                {
+                    yOver = ys;
+                    dxOver = dx;
+                }
+                else if (ys <= mouseY && ys > yUnder)
+                {
+                    yUnder = ys;
+                    dxUnder = dx;
                 }
             }
+
             return dxOver > 0 && dxUnder < 0;
         }
 
@@ -515,23 +485,22 @@ namespace DrawingLetters
 
                 dx = endPoint.X - startPoint.X;
 
-                if (IsPointWithinXRangeAndNotMoving(drawPoint, startPoint, endPoint, dx))
-                {
-                    dy = endPoint.Y - startPoint.Y;
-                    ys = (drawPoint.X - startPoint.X) / dx * dy + startPoint.Y;
+                if (!IsPointWithinXRangeAndNotMoving(drawPoint, startPoint, endPoint, dx)) continue;
+                dy = endPoint.Y - startPoint.Y;
+                ys = (drawPoint.X - startPoint.X) / dx * dy + startPoint.Y;
 
-                    if (ys >= drawPoint.Y && ys < yOver)
-                    {
-                        yOver = ys;
-                        dxOver = dx;
-                    }
-                    else if (ys <= drawPoint.Y && ys > yUnder)
-                    {
-                        yUnder = ys;
-                        dxUnder = dx;
-                    }
+                if (ys >= drawPoint.Y && ys < yOver)
+                {
+                    yOver = ys;
+                    dxOver = dx;
+                }
+                else if (ys <= drawPoint.Y && ys > yUnder)
+                {
+                    yUnder = ys;
+                    dxUnder = dx;
                 }
             }
+
             return dxOver > 0 && dxUnder < 0;
         }
 
