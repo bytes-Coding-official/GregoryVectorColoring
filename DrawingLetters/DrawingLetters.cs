@@ -394,7 +394,7 @@ namespace DrawingLetters
 
             double scaleFactor = GetScaleFactor();
 
-            g.FillEllipse(drawColor, (float)point.X, (float)point.Y, radius * 2, radius * 2);
+            g.FillEllipse(drawColor, (float)point.X, (float)point.Y, 10, 10);
         }
 
         private void CanvasResize(object sender, EventArgs e)
