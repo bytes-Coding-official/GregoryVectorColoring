@@ -154,14 +154,14 @@ namespace DrawingLetters
 
             distanceLED = distance;
 
-            if(distanceLED >= 100)
+            if (distanceLED >= 100)
             {
                 distanceLED /= 10;
             }
 
             distance /= 10;
 
-            height = distance * (float) Math.Sqrt(3) / 2f;
+            height = distance * (float)Math.Sqrt(3) / 2f;
 
             drawnPoints = new List<DrawPoint>();
 
@@ -236,10 +236,12 @@ namespace DrawingLetters
 
             while (counterDistanceUp <= maxDistance)
             {
-                foreach (var actualPoint in from kvp in allNeighbors 
-                        let actualPoint = kvp.Key let neighbors = kvp.Value 
-                        where actualPoint.Distance == counterDistanceUp && 
-                        CheckIfHigherDistanceNotExist(actualPoint, neighbors) select actualPoint)
+                foreach (var actualPoint in from kvp in allNeighbors
+                                            let actualPoint = kvp.Key
+                                            let neighbors = kvp.Value
+                                            where actualPoint.Distance == counterDistanceUp &&
+                                            CheckIfHigherDistanceNotExist(actualPoint, neighbors)
+                                            select actualPoint)
                 {
                     centerLinePoints.Push(actualPoint);
                 }
@@ -247,21 +249,23 @@ namespace DrawingLetters
             }
 
             HashSet<DrawPoint> ledPoints = [];
-            foreach (var linePoint in from linePoint in centerLinePoints 
-                    let nichtUeberlappend = new HashSet<DrawPoint>(ledPoints).
-                    All(donePoint => linePoint.X + distanceLED < donePoint.X - distanceLED ||
-                    linePoint.X - distanceLED > donePoint.X + distanceLED || 
-                    linePoint.Y + distanceLED < donePoint.Y - distanceLED || 
-                    linePoint.Y - distanceLED > donePoint.Y + distanceLED) 
-                    where nichtUeberlappend select linePoint)
+            foreach (var linePoint in from linePoint in centerLinePoints
+                                      let nichtUeberlappend = new HashSet<DrawPoint>(ledPoints).
+                                      All(donePoint => linePoint.X + distanceLED < donePoint.X - distanceLED ||
+                                      linePoint.X - distanceLED > donePoint.X + distanceLED ||
+                                      linePoint.Y + distanceLED < donePoint.Y - distanceLED ||
+                                      linePoint.Y - distanceLED > donePoint.Y + distanceLED)
+                                      where nichtUeberlappend
+                                      select linePoint)
             {
                 ledPoints.Add(linePoint);
             }
             //& Färbe und zeichne die punkte ein
             foreach (DrawPoint point in centerLinePoints)
             {
-                DrawCenterPoint(graphic, point, dotRadius);
+                DrawCenterPoint(graphic, point);
             }
+
             List<DrawPoint> centerPointList = ledPoints.ToList();
             DrawLEDPoints(centerPointList, graphic);
         }
@@ -269,13 +273,10 @@ namespace DrawingLetters
         private void DrawLEDPoints(List<DrawPoint> centerPointList, Graphics graphic)
         {
             int halfDistance = distanceLED / 2;
-            int counter = 0;
             double dx;
             double dy;
 
             List<DrawPoint> newPoints = new List<DrawPoint>();
-
-            //DrawCenterPoint();
 
             for (int i = 0; i < centerPointList.Count; i++)
             {
@@ -296,7 +297,7 @@ namespace DrawingLetters
 
             foreach (DrawPoint p in newPoints)
             {
-                DrawCenterPoint(graphic, p, dotRadius, true);
+                DrawCenterPoint(graphic, p, true);
             }
         }
 
@@ -388,11 +389,19 @@ namespace DrawingLetters
             g.DrawString(distance.ToString(), font, drawColor, (float)point.X, (float)point.Y);
         }
 
-        private void DrawCenterPoint(Graphics g, DrawPoint point, float radius, bool isRed = false)
+        private void DrawCenterPoint(Graphics g, DrawPoint point, bool isRed = false)
         {
             SolidBrush drawColor = new SolidBrush(isRed ? Color.Red : Color.Yellow);
 
-            g.FillEllipse(drawColor, (float)point.X, (float)point.Y, 10, 10);
+            if (isRed)
+            {
+                distance *= 10;
+                int drawDistance = distance >= 100 ? distance / 10 : distance;
+                g.FillEllipse(drawColor, (float)point.X, (float)point.Y, drawDistance, drawDistance);
+                distance /= 10;
+            }
+
+            g.FillEllipse(drawColor, (float)point.X, (float)point.Y, 7.5f, 7.5f);
         }
 
         private void CanvasResize(object sender, EventArgs e)
