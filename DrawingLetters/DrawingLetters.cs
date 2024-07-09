@@ -105,7 +105,7 @@ namespace DrawingLetters {
                 return;
             }
 
-
+            linePoints.Clear();
             var blackPen = new Pen(Color.Black, 5);
             PointF? startPoint = null;
 
@@ -118,6 +118,7 @@ namespace DrawingLetters {
                 }
                 else if (startPoint.HasValue) {
                     e.Graphics.DrawLine(blackPen, startPoint.Value, currentPoint);
+                    linePoints = GetPointsBetween(startPoint.Value, currentPoint);
                     startPoint = currentPoint;
                 }
             }
@@ -249,9 +250,8 @@ namespace DrawingLetters {
             var finalPoints = new HashSet<DrawPoint>(centerPointList); // Assuming you want to start with all yellowPoints.
             var pointsToRemove = new HashSet<DrawPoint>();
 
-
-            foreach (var yellowPoint in finalPoints.Where(yellowPoint => linePoints.Any(originalCoord => Math.Abs(originalCoord.X - yellowPoint.X) < distanceLED / 4.0 &&
-                                                                                                         Math.Abs(originalCoord.Y - yellowPoint.Y) < distanceLED / 4.0))) {
+            foreach (var yellowPoint in finalPoints.Where(yellowPoint => linePoints.Any(originalCoord => Math.Abs(originalCoord.X - yellowPoint.X) < distanceLED &&
+                                                                                                         Math.Abs(originalCoord.Y - yellowPoint.Y) < distanceLED))) {
                 pointsToRemove.Add(yellowPoint);
             }
 
