@@ -1,9 +1,6 @@
-﻿namespace DrawingLetters
-{
-    public struct DrawingCoordinate
-    {
-        public DrawingCoordinate(bool isMoving, double x, double y)
-        {
+﻿namespace DrawingLetters {
+    public struct DrawingCoordinate {
+        public DrawingCoordinate(bool isMoving, double x, double y) {
             IsMoving = isMoving;
             X = x;
             Y = y;

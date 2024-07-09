@@ -1,9 +1,6 @@
-﻿namespace DrawingLetters
-{
-    public class DrawPoint
-    {
-        public DrawPoint(double x, double y, int distance = -1)
-        {
+﻿namespace DrawingLetters {
+    public class DrawPoint {
+        public DrawPoint(double x, double y, int distance = -1) {
             X = x;
             Y = y;
             Distance = distance;
