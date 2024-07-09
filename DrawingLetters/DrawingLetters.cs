@@ -99,7 +99,6 @@ namespace DrawingLetters {
             }
         }
 
-        private List<PointF> resultPoints = new(); // Diese Liste speichert alle gezeichneten Punkte
         
         
         
@@ -113,48 +112,20 @@ namespace DrawingLetters {
 
             foreach (var coordinate in scaledCoords) {
                 var mirroredY = mirroringYCoordinate(coordinate.Y);
-                var currentPoint = new PointF((float)coordinate.X, (float)mirroredY);
+                var currentPoint = new PointF((float) coordinate.X, (float) mirroredY);
 
                 if (coordinate.IsMoving) {
-                    if (startPoint.HasValue) {
-                        // Wenn ein neuer Bewegungsstartpunkt festgelegt wird, fügen Sie den vorherigen Startpunkt hinzu
-                        resultPoints.Add(startPoint.Value);
-                    }
                     startPoint = currentPoint;
-                } else if (startPoint.HasValue) {
-                    var linePoints = CalculateLinePoints(startPoint.Value, currentPoint);
-                    resultPoints.AddRange(linePoints); // Fügt alle berechneten Punkte zur Liste hinzu
+                }
+                else if (startPoint.HasValue) {
+                    e.Graphics.DrawLine(blackPen, startPoint.Value, currentPoint);
                     startPoint = currentPoint;
                 }
             }
 
             DrawPoints(e.Graphics);
         }
-        private List<PointF> CalculateLinePoints(PointF start, PointF end) {
-            List<PointF> points = new List<PointF>();
 
-            int x0 = (int)start.X;
-            int y0 = (int)start.Y;
-            int x1 = (int)end.X;
-            int y1 = (int)end.Y;
-
-            int dx = Math.Abs(x1 - x0);
-            int dy = -Math.Abs(y1 - y0);
-            int sx = x0 < x1 ? 1 : -1;
-            int sy = y0 < y1 ? 1 : -1;
-            int err = dx + dy, e2;
-
-            while (true) {
-                points.Add(new PointF(x0, y0));
-
-                if (x0 == x1 && y0 == y1) break;
-                e2 = 2 * err;
-                if (e2 >= dy) { err += dy; x0 += sx; }
-                if (e2 <= dx) { err += dx; y0 += sy; }
-            }
-
-            return points;
-        }
         private void DrawPoints(Graphics g) {
             if (distance < 10) {
                 return;
