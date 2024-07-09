@@ -13,6 +13,7 @@ namespace DrawingLetters {
         private float dotRadius = 2.5f;
         private double maxX, maxY, minX, minY;
         private float height;
+        private List<PointF> linePoints = new();
 
         public DrawingLetters() {
             InitializeComponent();
@@ -46,7 +47,7 @@ namespace DrawingLetters {
                     NumberGroupSeparator = ","
                 };
 
-                using StreamReader stream = new StreamReader(csvPath);
+                using var stream = new StreamReader(csvPath);
 
                 string line;
 
@@ -99,13 +100,11 @@ namespace DrawingLetters {
             }
         }
 
-        
-        
-        
         private void LetterDrawingPaint(object sender, PaintEventArgs e) {
             if (scaledCoords == null || scaledCoords.Length == 0) {
                 return;
             }
+
 
             var blackPen = new Pen(Color.Black, 5);
             PointF? startPoint = null;
@@ -125,6 +124,31 @@ namespace DrawingLetters {
 
             DrawPoints(e.Graphics);
         }
+
+        private float Distance(PointF p1, PointF p2) {
+            // Euklidische Distanz
+            return (float) Math.Sqrt(Math.Pow(p2.X - p1.X, 2) + Math.Pow(p2.Y - p1.Y, 2));
+        }
+
+
+        private List<PointF> GetPointsBetween(PointF start, PointF end) {
+            var distance = Distance(start, end);
+            // Die Anzahl der Schritte bestimmen
+            var steps = (int) Math.Ceiling(distance);
+
+            // Die Differenz für jeden Schritt berechnen
+            var deltaX = (end.X - start.X) / steps;
+            var deltaY = (end.Y - start.Y) / steps;
+
+            for (var i = 0; i <= steps; i++) {
+                var x = start.X + (deltaX * i);
+                var y = start.Y + (deltaY * i);
+                linePoints.Add(new PointF(x, y));
+            }
+
+            return linePoints;
+        }
+
 
         private void DrawPoints(Graphics g) {
             if (distance < 10) {
@@ -183,21 +207,12 @@ namespace DrawingLetters {
 
         private int GetHighestDistance() {
             var highestKeyDistance = allNeighbors.Keys.Max(point => point.Distance);
-            /*int highestValueDistance = allNeighbors.Values
-                .SelectMany(list => list) // Flatten die Listen von DrawPoints zu einer Sequenz von DrawPoints
-                .Max(point => point.Distance);*/
-
-            //return Math.Max(highestKeyDistance, highestValueDistance);
             return highestKeyDistance;
         }
 
         private void DrawCenterLine(Graphics graphic) {
-            Console.WriteLine("performed");
             var maxDistance = GetHighestDistance();
-            pointPosition.Text += maxDistance + "\n";
-
             foreach (var keyPoint in allNeighbors.Select(kvp => kvp.Key)) {
-                //DrawNumber(graphic, keyPoint, dotRadius, keyPoint.Distance);
                 DrawSinglePoint(graphic, keyPoint, dotRadius);
             }
 
@@ -218,18 +233,13 @@ namespace DrawingLetters {
             }
 
             HashSet<DrawPoint> ledPoints = [];
-            foreach (var linePoint in from linePoint in centerLinePoints
-                     let nichtUeberlappend = new HashSet<DrawPoint>(ledPoints).All(donePoint => linePoint.X + distanceLED < donePoint.X - distanceLED ||
-                                                                                                linePoint.X - distanceLED > donePoint.X + distanceLED ||
-                                                                                                linePoint.Y + distanceLED < donePoint.Y - distanceLED ||
-                                                                                                linePoint.Y - distanceLED > donePoint.Y + distanceLED)
-                     where nichtUeberlappend
-                     select linePoint) {
-                ledPoints.Add(linePoint);
+            foreach (var linePoint in centerLinePoints) {
+                var nichtUeberlappend = new HashSet<DrawPoint>(ledPoints).All(donePoint => linePoint.X + distanceLED < donePoint.X - distanceLED || linePoint.X - distanceLED > donePoint.X + distanceLED || linePoint.Y + distanceLED < donePoint.Y - distanceLED || linePoint.Y - distanceLED > donePoint.Y + distanceLED);
+                if (nichtUeberlappend) ledPoints.Add(linePoint);
             }
 
             //& Färbe und zeichne die punkte ein
-            foreach (DrawPoint point in centerLinePoints) {
+            foreach (var point in centerLinePoints) {
                 DrawCenterPoint(graphic, point);
             }
 
@@ -238,30 +248,17 @@ namespace DrawingLetters {
 
             var finalPoints = new HashSet<DrawPoint>(centerPointList); // Assuming you want to start with all yellowPoints.
             var pointsToRemove = new HashSet<DrawPoint>();
-           
 
-            foreach (var yellowPoint in finalPoints) {
-                foreach (var originalCoord in scaledCoords) {
-                    // Check if any originalCoord is within a square around the yellowPoint with the diameter of distanceLED / 4.0
-                    if (Math.Abs(originalCoord.X - yellowPoint.X) < 200 &&
-                        Math.Abs(originalCoord.Y - yellowPoint.Y) < 200) {
-                        pointsToRemove.Add(yellowPoint);
-                        //print the cords of the yellowPoint and the originalCoord
-                        var text = (yellowPoint.X/1)+", "+yellowPoint.Y/1+  " :: " + originalCoord.ToString();
-                        Console.WriteLine("Cords: "+text);
-                       
-                        
-                        
-                        break; // No need to check other originalCoords once a match is found
-                    }
-                }
+
+            foreach (var yellowPoint in finalPoints.Where(yellowPoint => linePoints.Any(originalCoord => Math.Abs(originalCoord.X - yellowPoint.X) < distanceLED / 4.0 &&
+                                                                                                         Math.Abs(originalCoord.Y - yellowPoint.Y) < distanceLED / 4.0))) {
+                pointsToRemove.Add(yellowPoint);
             }
 
-            // Remove the identified points from finalPoints
+            // Remove the identified linePoints from finalPoints
             foreach (var pointToRemove in pointsToRemove) {
                 finalPoints.Remove(pointToRemove);
             }
-
 
             DrawLEDPoints(finalPoints.ToList(), graphic);
         }
@@ -337,7 +334,7 @@ namespace DrawingLetters {
         private void AddNeighborIfClose(DrawPoint firstPoint, DrawPoint secondPoint, float offsetX, float offsetY) {
             if (!(Math.Abs(secondPoint.X - (firstPoint.X + offsetX)) < 1) || !(Math.Abs(secondPoint.Y - (firstPoint.Y + offsetY)) < 1)) return;
             if (!allNeighbors.TryGetValue(firstPoint, out var neighbor)) {
-                neighbor = new List<DrawPoint>();
+                neighbor = [];
                 allNeighbors.Add(firstPoint, neighbor);
             }
 
@@ -345,7 +342,6 @@ namespace DrawingLetters {
         }
 
         private void DrawSinglePoint(Graphics g, DrawPoint point, float radius) {
-            var maxDistance = GetHighestDistance();
             var drawColor = new SolidBrush(Color.Black);
 
             var scaleFactor = GetScaleFactor();
@@ -355,16 +351,6 @@ namespace DrawingLetters {
             g.FillEllipse(drawColor, (float) point.X, (float) point.Y, radius * 2, radius * 2);
         }
 
-        private void DrawNumber(Graphics g, DrawPoint point, float radius, int distance) {
-            var drawColor = new SolidBrush(Color.Red);
-
-            var font = new Font("Calibri", 8);
-            var scaleFactor = GetScaleFactor();
-            point.Y = ChangeYPointCoordinate(point.Y);
-            point.X *= scaleFactor;
-
-            g.DrawString(distance.ToString(), font, drawColor, (float) point.X, (float) point.Y);
-        }
 
         private void DrawCenterPoint(Graphics g, DrawPoint point, bool isRed = false) {
             var drawColor = new SolidBrush(isRed ? Color.Red : Color.Yellow);
@@ -519,7 +505,6 @@ namespace DrawingLetters {
             var scaleFactor = GetScaleFactor();
             y *= scaleFactor;
             y = (float) mirroringYCoordinate((float) y);
-
             return y;
         }
     }
